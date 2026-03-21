@@ -1,0 +1,66 @@
+{
+  "name": "openclaw-switch-gui",
+  "version": "1.0.1",
+  "description": "OpenClaw API Key 切换工具",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win nsis",
+    "build:portable": "electron-builder --win portable",
+    "build:nsis": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.openclaw.switch",
+    "productName": "OpenClaw Switch",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "src/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "src/icon.ico",
+      "uninstallerIcon": "src/icon.ico",
+      "installerHeaderIcon": "src/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "OpenClaw Switch",
+      "artifactName": "OpenClaw-Switch-${version}-Setup.exe",
+      "perMachine": false,
+      "allowElevation": true,
+      "installerLanguages": ["zh_CN", "en_US"],
+      "language": 2052
+    }
+  },
+  "author": "Siege lion勇哥",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bihumanbu/openclaw-switch-gui.git"
+  },
+  "homepage": "https://github.com/bihumanbu/openclaw-switch-gui#readme",
+  "bugs": {
+    "url": "https://github.com/bihumanbu/openclaw-switch-gui/issues"
+  },
+  "keywords": [
+    "openclaw",
+    "api-key",
+    "electron",
+    "gui",
+    "gateway",
+    "provider",
+    "model-management"
+  ],
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  }
+}

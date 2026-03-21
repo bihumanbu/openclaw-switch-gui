@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Switch</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #0f1117;
+      --bg2: #161b27;
+      --bg3: #1e2535;
+      --border: #2a3347;
+      --accent: #4f8ef7;
+      --accent2: #3d7ae8;
+      --green: #22c55e;
+      --red: #ef4444;
+      --yellow: #f59e0b;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+    }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    /* ── Titlebar ── */
+    .titlebar {
+      height: 40px;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      -webkit-app-region: drag;
+      flex-shrink: 0;
+    }
+    .titlebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .titlebar-logo svg { color: var(--accent); }
+    .titlebar-spacer { flex: 1; }
+    .titlebar-btns {
+      display: flex;
+      gap: 6px;
+      -webkit-app-region: no-drag;
+    }
+    .titlebar-btn {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text2);
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background .15s;
+      font-size: 14px;
+    }
+    .titlebar-btn:hover { background: var(--bg3); color: var(--text); }
+    .titlebar-btn.close:hover { background: var(--red); color: #fff; }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 220px;
+      background: var(--bg2);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar-header {
+      padding: 16px 16px 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+    .sidebar-list { flex: 1; overflow-y: auto; padding: 0 8px 8px; }
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background .15s;
+      font-size: 13px;
+      color: var(--text2);
+      position: relative;
+    }
+    .sidebar-item:hover { background: var(--bg3); color: var(--text); }
+    .sidebar-item.active { background: rgba(79,142,247,.15); color: var(--accent); }
+    .sidebar-item .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--bg3);
+      flex-shrink: 0;
+    }
+    .sidebar-item.active .dot { background: var(--accent); }
+    .sidebar-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .sidebar-item .badge {
+      font-size: 10px;
+      background: var(--bg3);
+      color: var(--text3);
+      padding: 1px 6px;
+      border-radius: 10px;
+    }
+    .sidebar-item.active .badge { background: rgba(79,142,247,.2); color: var(--accent); }
+    .sidebar-add {
+      margin: 8px;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px dashed var(--border);
+      background: transparent;
+      color: var(--text3);
+      font-size: 12px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      transition: all .15s;
+    }
+    .sidebar-add:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,.05); }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Provider Header ── */
+    .provider-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .provider-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+    .provider-info { flex: 1; }
+    .provider-name {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .provider-url {
+      font-size: 12px;
+      color: var(--text3);
+      font-family: monospace;
+    }
+    .provider-actions { display: flex; gap: 8px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 14px;
+    }
+
+    /* ── API Key row ── */
+    .apikey-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .apikey-display {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--text2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .apikey-input {
+      flex: 1;
+      background: var(--bg3);
+      border: 1px solid var(--accent);
+      border-radius: 8px;
+      padding: 9px 14px;
+      font-family: monospace;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all .15s;
+      white-space: nowrap;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: var(--accent2); }
+    .btn-ghost { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: var(--text3); }
+    .btn-danger { background: rgba(239,68,68,.1); color: var(--red); border: 1px solid rgba(239,68,68,.2); }
+    .btn-danger:hover { background: rgba(239,68,68,.2); }
+    .btn-green { background: rgba(34,197,94,.1); color: var(--green); border: 1px solid rgba(34,197,94,.2); }
+    .btn-green:hover { background: rgba(34,197,94,.2); }
+    .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+    /* ── Profiles grid ── */
+    .profiles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 10px;
+    }
+    .profile-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all .15s;
+      position: relative;
+    }
+    .profile-card:hover { border-color: var(--accent); background: rgba(79,142,247,.05); }
+    .profile-card.current { border-color: var(--green); background: rgba(34,197,94,.05); }
+    .profile-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .profile-card-name .current-badge {
+      font-size: 10px;
+      background: rgba(34,197,94,.15);
+      color: var(--green);
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .profile-card-key {
+      font-family: monospace;
+      font-size: 11px;
+      color: var(--text3);
+      margin-bottom: 8px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .profile-card-date { font-size: 10px; color: var(--text3); }
+    .profile-card-actions {
+      position: absolute;
+      top: 10px; right: 10px;
+      display: none;
+      gap: 4px;
+    }
+    .profile-card:hover .profile-card-actions { display: flex; }
+    .profile-add-card {
+      background: transparent;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      color: var(--text3);
+      font-size: 12px;
+      transition: all .15s;
+      min-height: 90px;
+    }
+    .profile-add-card:hover { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,.05); }
+
+    /* ── Models list ── */
+    .model-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      position: relative;
+    }
+    .model-row:last-child { border-bottom: none; }
+    .model-row:hover .model-delete { display: flex; }
+    .model-id { font-family: monospace; color: var(--text2); flex: 1; }
+    .model-name { color: var(--text3); font-size: 12px; }
+    .model-tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 10px;
+      background: var(--bg3);
+      color: var(--text3);
+    }
+    .model-tag.reasoning { background: rgba(245,158,11,.1); color: var(--yellow); }
+    .model-tag.image { background: rgba(79,142,247,.1); color: var(--accent); }
+    .model-delete {
+      display: none;
+      width: 22px; height: 22px;
+      border-radius: 5px;
+      border: none;
+      background: rgba(239,68,68,.1);
+      color: var(--red);
+      cursor: pointer;
+      align-items: center; justify-content: center;
+      flex-shrink: 0;
+      font-size: 12px;
+    }
+    .model-delete:hover { background: rgba(239,68,68,.25); }
+
+    /* ── Empty state ── */
+    .empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 12px;
+      color: var(--text3);
+      font-size: 14px;
+    }
+    .empty svg { opacity: .3; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.hidden { display: none; }
+    .modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      width: 420px;
+      max-width: 90vw;
+    }
+    .modal-title {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 18px;
+      color: var(--text);
+    }
+    .form-group { margin-bottom: 14px; }
+    .form-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .form-input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color .15s;
+    }
+    .form-input:focus { border-color: var(--accent); }
+    .form-select {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      cursor: pointer;
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: var(--text);
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all .25s;
+      z-index: 200;
+      max-width: 320px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-color: rgba(34,197,94,.3); }
+    .toast.error { border-color: rgba(239,68,68,.3); }
+
+    /* ── Primary Bar ── */
+    .primary-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      gap: 16px;
+      min-height: 46px;
+    }
+
+    /* ── Gateway Bar ── */
+    .gateway-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+      min-height: 38px;
+    }
+    .gw-label {
+      font-size: 11px;
+      color: var(--text3);
+      margin-right: 4px;
+    }
+
+    /* ── Gateway Status Float (bottom-right) ── */
+    .gw-float {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 14px;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 50;
+      box-shadow: 0 4px 12px rgba(0,0,0,.3);
+      transition: opacity .2s;
+    }
+    .gw-float.hidden { opacity: 0; pointer-events: none; }
+    .gw-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .gw-running { background: var(--green); box-shadow: 0 0 6px rgba(34,197,94,.5); }
+    .gw-stopped { background: var(--red); }
+    .gw-unknown { background: var(--text3); }
+
+    /* ── Tab Bar ── */
+    .tab-bar {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      flex-shrink: 0;
+      gap: 0;
+    }
+    .tab-item {
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text3);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all .15s;
+      user-select: none;
+    }
+    .tab-item:hover { color: var(--text2); }
+    .tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* ── Terminal Log ── */
+    .tab-panel { display: none; flex: 1; overflow: hidden; flex-direction: column; }
+    .tab-panel.active { display: flex; }
+    .terminal-log {
+      flex: 1;
+      background: #0a0e14;
+      color: #c5cdd9;
+      font-family: 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 12px 16px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .terminal-log .log-line-err { color: var(--red); }
+    .terminal-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text3);
+      font-size: 13px;
+      background: #0a0e14;
+    }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    /* ── Spinner ── */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .btn-spinner {
+      display: inline-block;
+      width: 12px; height: 12px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+      flex-shrink: 0;
+    }
+
+    /* ── Install Wizard ── */
+    .wizard-overlay {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 300;
+    }
+    .wizard-overlay.hidden { display: none; }
+    .wizard-dialog {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      display: flex;
+      overflow: hidden;
+      border-radius: 0;
+      border: none;
+    }
+    /* Wizard sidebar */
+    .wizard-nav {
+      width: 200px;
+      flex-shrink: 0;
+      background: var(--bg);
+      border-right: 1px solid var(--border);
+      padding: 28px 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .wizard-nav-logo {
+      padding: 0 20px 24px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .wizard-nav-logo svg { color: var(--accent); }
+    .wizard-step-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      font-size: 13px;
+      color: var(--text3);
+      transition: color .15s;
+      position: relative;
+    }
+    .wizard-step-item.active { color: var(--text); }
+    .wizard-step-item.done { color: var(--green); }
+    .wizard-step-num {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+      color: var(--text3);
+      transition: all .2s;
+    }
+    .wizard-step-item.active .wizard-step-num {
+      border-color: var(--accent);
+      background: rgba(79,142,247,.15);
+      color: var(--accent);
+    }
+    .wizard-step-item.done .wizard-step-num {
+      border-color: var(--green);
+      background: rgba(34,197,94,.15);
+      color: var(--green);
+    }
+    /* Wizard content */
+    .wizard-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .wizard-page {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      padding: 32px 36px;
+      overflow-y: auto;
+    }
+    .wizard-page.active { display: flex; }
+    .wizard-page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .wizard-page-sub {
+      font-size: 13px;
+      color: var(--text3);
+      margin-bottom: 24px;
+    }
+    .wizard-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      padding: 16px 36px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    /* Welcome feature grid */
+    .wiz-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .wiz-feature-card {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 14px;
+      text-align: center;
+    }
+    .wiz-feature-icon { font-size: 28px; margin-bottom: 8px; }
+    .wiz-feature-title { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .wiz-feature-desc { font-size: 11px; color: var(--text3); }
+    /* Env check items */
+    .wiz-env-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 16px;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 10px;
+    }
+    .wiz-env-icon { font-size: 22px; flex-shrink: 0; }
+    .wiz-env-info { flex: 1; }
+    .wiz-env-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .wiz-env-desc { font-size: 11px; color: var(--text3); margin-top: 2px; }
+    .wiz-env-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+    }
+    .wiz-env-badge.ok { background: rgba(34,197,94,.15); color: var(--green); }
+    .wiz-env-badge.missing { background: rgba(239,68,68,.12); color: var(--red); }
+    .wiz-env-badge.checking { background: rgba(100,116,139,.15); color: var(--text3); }
+    /* Install log */
+    .wiz-install-log {
+      flex: 1;
+      background: #0a0e14;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 12px;
+      color: #c5cdd9;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      line-height: 1.6;
+      min-height: 160px;
+    }
+    .wiz-progress {
+      height: 6px;
+      background: var(--bg3);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .wiz-progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width .4s ease;
+    }
+    /* Done page */
+    .wiz-done-icon {
+      font-size: 56px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .wiz-done-tip {
+      background: rgba(34,197,94,.08);
+      border: 1px solid rgba(34,197,94,.2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Titlebar -->
+<div class="titlebar">
+  <div class="titlebar-logo">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+    </svg>
+    OpenClaw Switch <span style="color:var(--text3); font-weight:400; font-size:11px; margin-left:4px;">Siege lion勇哥出品</span>
+  </div>
+  <div class="titlebar-spacer"></div>
+  <div class="titlebar-btns">
+    <button class="titlebar-btn" onclick="window.api.minimize()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect y="5.5" width="12" height="1"/></svg>
+    </button>
+    <button class="titlebar-btn close" onclick="window.api.close()">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+        <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Gateway Control Bar -->
+<div id="gatewayBar" class="gateway-bar"></div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <div class="tab-item active" data-tab="config" onclick="switchTab('config')">配置龙虾</div>
+  <div class="tab-item" data-tab="logs" onclick="switchTab('logs')">启动日志</div>
+</div>
+
+<!-- Primary Model Bar -->
+<div id="primaryBar" class="primary-bar"></div>
+
+<!-- Tab: 配置龙虾 (default) -->
+<div class="tab-panel active" id="tabConfig">
+  <!-- Layout -->
+  <div class="layout">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-header">Providers</div>
+      <div class="sidebar-list" id="sidebarList"></div>
+      <button class="sidebar-add" onclick="showAddProviderModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        添加 Provider
+      </button>
+    </div>
+
+    <!-- Main -->
+    <div class="main" id="mainContent">
+      <div class="empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        <span>选择左侧 Provider 开始管理</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab: 启动日志 -->
+<div class="tab-panel" id="tabLogs">
+  <div class="terminal-empty" id="terminalEmpty">Gateway 未启动，暂无日志</div>
+  <div class="terminal-log" id="terminalLog" style="display:none;"></div>
+</div>
+
+<!-- Modal: Add Provider -->
+<div class="modal-overlay hidden" id="addProviderModal">
+  <div class="modal">
+    <div class="modal-title">添加 Provider</div>
+    <div class="form-group">
+      <label class="form-label">名称</label>
+      <input class="form-input" id="newProviderName" placeholder="例如: myrouter">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Base URL</label>
+      <input class="form-input" id="newProviderUrl" placeholder="https://api.example.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <input class="form-input" id="newProviderKey" placeholder="sk-...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">API 类型</label>
+      <select class="form-select" id="newProviderApi">
+        <option value="openai-completions">openai-completions</option>
+        <option value="anthropic-messages">anthropic-messages</option>
+        <option value="ollama">ollama</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="hideModal('addProviderModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitAddProvider()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Save Profile -->
+<div class="modal-overlay hidden" id="saveProfileModal">
+  <div class="modal">
+    <div class="modal-title">保存为 Profile</div>
+    <div class="form-group">
+      <label class="form-label">Profile 名称</label>
+      <input class="form-input" id="newProfileName" placeholder="例如: work / personal / backup">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="hideModal('saveProfileModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitSaveProfile()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Add Model -->
+<div class="modal-overlay hidden" id="addModelModal">
+  <div class="modal" style="width: 480px;">
+    <div class="modal-title">添加模型</div>
+
+    <!-- Presets -->
+    <div class="form-group">
+      <label class="form-label">快速选择预设</label>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('deepseek-chat')">DeepSeek V3</button>
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('deepseek-reasoner')">DeepSeek R1</button>
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('k2p5')">Kimi K2</button>
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('claude-sonnet-4-6')">Claude Sonnet 4.6</button>
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('claude-opus-4-6')">Claude Opus 4.6</button>
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('gpt-4o')">GPT-4o</button>
+        <button class="btn btn-ghost btn-sm" onclick="applyModelPreset('qwen3:8b')">Qwen3 8B</button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+      <div class="form-group">
+        <label class="form-label">模型 ID (必填)</label>
+        <input class="form-input" id="newModelId" placeholder="例如: deepseek-reasoner">
+      </div>
+      <div class="form-group">
+        <label class="form-label">显示名称 (必填)</label>
+        <input class="form-input" id="newModelName" placeholder="例如: DeepSeek R1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">上下文窗口</label>
+        <input class="form-input" id="newModelContext" type="number" value="65536">
+      </div>
+      <div class="form-group">
+        <label class="form-label">最大输出 Tokens</label>
+        <input class="form-input" id="newModelMaxTokens" type="number" value="8192">
+      </div>
+    </div>
+    <div style="display: flex; gap: 16px; margin-bottom: 14px;">
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); cursor: pointer;">
+        <input type="checkbox" id="newModelReasoning"> Reasoning 模型
+      </label>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); cursor: pointer;">
+        <input type="checkbox" id="newModelImage"> 支持图片输入
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="hideModal('addModelModal')">取消</button>
+      <button class="btn btn-primary" onclick="submitAddModel()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gateway Status Float -->
+<div id="gatewayStatusFloat" class="gw-float"></div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Install Wizard -->
+<div class="wizard-overlay hidden" id="installWizard">
+  <div class="wizard-dialog">
+    <!-- Nav -->
+    <div class="wizard-nav">
+      <div class="wizard-nav-logo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+        OpenClaw
+      </div>
+      <div class="wizard-step-item active" id="wiz-nav-0">
+        <div class="wizard-step-num">1</div>
+        <span>欢迎</span>
+      </div>
+      <div class="wizard-step-item" id="wiz-nav-1">
+        <div class="wizard-step-num">2</div>
+        <span>环境检测</span>
+      </div>
+      <div class="wizard-step-item" id="wiz-nav-2">
+        <div class="wizard-step-num">3</div>
+        <span>安装</span>
+      </div>
+      <div class="wizard-step-item" id="wiz-nav-3">
+        <div class="wizard-step-num">4</div>
+        <span>完成</span>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="wizard-body">
+      <!-- Page 0: Welcome -->
+      <div class="wizard-page active" id="wiz-page-0">
+        <div class="wizard-page-title">欢迎使用 OpenClaw</div>
+        <div class="wizard-page-sub">检测到您尚未安装 OpenClaw 环境，向导将引导您完成安装</div>
+        <div class="wiz-feature-grid">
+          <div class="wiz-feature-card">
+            <div class="wiz-feature-icon">⚡</div>
+            <div class="wiz-feature-title">一键安装</div>
+            <div class="wiz-feature-desc">自动完成所有依赖配置</div>
+          </div>
+          <div class="wiz-feature-card">
+            <div class="wiz-feature-icon">🔑</div>
+            <div class="wiz-feature-title">API 管理</div>
+            <div class="wiz-feature-desc">轻松切换多个 API Key</div>
+          </div>
+          <div class="wiz-feature-card">
+            <div class="wiz-feature-icon">🚀</div>
+            <div class="wiz-feature-title">Gateway</div>
+            <div class="wiz-feature-desc">统一代理多个 AI 服务</div>
+          </div>
+        </div>
+        <div style="background: rgba(79,142,247,.08); border: 1px solid rgba(79,142,247,.2); border-radius: 10px; padding: 14px 16px; font-size: 13px; color: var(--text2); line-height: 1.6;">
+          安装需要系统已安装 <strong style="color:var(--text);">Node.js</strong>（v20+）和 <strong style="color:var(--text);">npm</strong>。如果版本不足，向导会自动通过 winget 升级。安装过程需要网络连接，预计耗时 1-3 分钟。
+        </div>
+      </div>
+
+      <!-- Page 1: Env Check -->
+      <div class="wizard-page" id="wiz-page-1">
+        <div class="wizard-page-title">环境检测</div>
+        <div class="wizard-page-sub">正在检测系统环境，请稍候...</div>
+        <div id="wizEnvList">
+          <div class="wiz-env-item">
+            <div class="wiz-env-icon">📦</div>
+            <div class="wiz-env-info">
+              <div class="wiz-env-name">Node.js</div>
+              <div class="wiz-env-desc">JavaScript 运行环境（需要 ≥22.16.0）</div>
+            </div>
+            <div class="wiz-env-badge checking" id="wiz-node-badge">检测中...</div>
+          </div>
+          <div class="wiz-env-item">
+            <div class="wiz-env-icon">📦</div>
+            <div class="wiz-env-info">
+              <div class="wiz-env-name">npm</div>
+              <div class="wiz-env-desc">Node.js 包管理器（必需）</div>
+            </div>
+            <div class="wiz-env-badge checking" id="wiz-npm-badge">检测中...</div>
+          </div>
+          <div class="wiz-env-item">
+            <div class="wiz-env-icon">🦞</div>
+            <div class="wiz-env-info">
+              <div class="wiz-env-name">OpenClaw</div>
+              <div class="wiz-env-desc">OpenClaw CLI 工具</div>
+            </div>
+            <div class="wiz-env-badge missing" id="wiz-oc-badge">未安装</div>
+          </div>
+        </div>
+        <div id="wizEnvMsg" style="margin-top: 12px; font-size: 12px; color: var(--text3);"></div>
+      </div>
+
+      <!-- Page 2: Install (npm install + onboard) -->
+      <div class="wizard-page" id="wiz-page-2">
+        <div class="wizard-page-title">安装 OpenClaw</div>
+        <div class="wizard-page-sub" id="wizInstallSub">正在安装缺失的环境组件...</div>
+        <div class="wiz-progress">
+          <div class="wiz-progress-fill" id="wizProgressFill" style="width:0%"></div>
+        </div>
+        <div id="wizInstallStatus" style="font-size: 12px; color: var(--text3); margin-bottom: 10px;">等待开始...</div>
+        <div class="wiz-install-log" id="wizInstallLog"></div>
+      </div>
+
+      <!-- Page 3: Done -->
+      <div class="wizard-page" id="wiz-page-3">
+        <div class="wizard-page-title">初始化配置</div>
+        <div class="wizard-page-sub" id="wizDoneSub">OpenClaw 环境已成功安装到您的系统</div>
+        <div class="wiz-done-tip" id="wizDoneTip">
+          在进入主界面前，需要先运行初始化命令，生成 <code style="background:var(--bg3);padding:1px 5px;border-radius:3px;font-size:11px;">~/.openclaw/</code> 配置文件夹。
+        </div>
+        <div id="wizOnboardSection" style="margin-top:12px;">
+          <button class="btn btn-green" id="wizOnboardBtn" onclick="wizRunOnboard()" style="width:100%;justify-content:center;padding:10px;">
+            运行 openclaw onboard（初始化配置）
+          </button>
+          <div id="wizOnboardStatus" style="margin-top:8px;font-size:12px;color:var(--text3);text-align:center;"></div>
+          <div class="wiz-install-log" id="wizOnboardLog" style="margin-top:10px;display:none;"></div>
+          <div id="wizOnboardDone" style="display:none;margin-top:8px;font-size:12px;color:var(--green);text-align:center;">
+            ✓ 初始化完成，配置文件已生成
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="wizard-actions" id="wizActions">
+        <button class="btn btn-ghost" id="wizSkipBtn" onclick="wizardSkip()">跳过</button>
+        <button class="btn btn-ghost" id="wizPrevBtn" onclick="wizardPrev()" style="display:none;">上一步</button>
+        <button class="btn btn-primary" id="wizNextBtn" onclick="wizardNext()">开始检测 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="renderer.js"></script>
+</body>
+</html>

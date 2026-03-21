@@ -1,0 +1,27 @@
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+  getData: () => ipcRenderer.invoke('get-data'),
+  setPrimary: (primary) => ipcRenderer.invoke('set-primary', { primary }),
+  saveProfile: (provider, profileName) => ipcRenderer.invoke('save-profile', { provider, profileName }),
+  switchProfile: (provider, profileName) => ipcRenderer.invoke('switch-profile', { provider, profileName }),
+  updateApiKey: (provider, apiKey) => ipcRenderer.invoke('update-apikey', { provider, apiKey }),
+  addProvider: (name, baseUrl, apiKey, api) => ipcRenderer.invoke('add-provider', { name, baseUrl, apiKey, api }),
+  deleteProvider: (provider) => ipcRenderer.invoke('delete-provider', { provider }),
+  deleteProfile: (provider, profileName) => ipcRenderer.invoke('delete-profile', { provider, profileName }),
+  addModel: (provider, model) => ipcRenderer.invoke('add-model', { provider, model }),
+  deleteModel: (provider, modelId) => ipcRenderer.invoke('delete-model', { provider, modelId }),
+  updateModel: (provider, modelId, model) => ipcRenderer.invoke('update-model', { provider, modelId, model }),
+  checkGateway: () => ipcRenderer.invoke('check-gateway'),
+  startGateway: () => ipcRenderer.invoke('start-gateway'),
+  stopGateway: () => ipcRenderer.invoke('stop-gateway'),
+  openDashboard: () => ipcRenderer.invoke('open-dashboard'),
+  onGatewayOutput: (callback) => ipcRenderer.on('gateway-output', (_event, data) => callback(data)),
+  minimize: () => ipcRenderer.send('window-minimize'),
+  close: () => ipcRenderer.send('window-close'),
+  installOpenClaw: () => ipcRenderer.invoke('install-openclaw'),
+  installNodejs: () => ipcRenderer.invoke('install-nodejs'),
+  checkEnv: () => ipcRenderer.invoke('check-env'),
+  runOnboard: () => ipcRenderer.invoke('run-onboard'),
+  onInstallOutput: (callback) => ipcRenderer.on('install-output', (_event, data) => callback(data)),
+});
