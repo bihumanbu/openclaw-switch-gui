@@ -57,6 +57,48 @@ function writePrimary(primary) {
   writeRawConfig(raw);
 }
 
+// 读取 agents 列表
+function readAgents() {
+  const raw = readRawConfig();
+  return (raw.agents && raw.agents.list) || [];
+}
+
+// 写入 agents 列表
+function writeAgents(agents) {
+  const raw = readRawConfig();
+  if (!raw.agents) raw.agents = {};
+  raw.agents.list = agents;
+  writeRawConfig(raw);
+}
+
+// 添加 agent
+function addAgent(agent) {
+  const agents = readAgents();
+  if (agents.some(a => a.id === agent.id)) {
+    throw new Error(`Agent "${agent.id}" 已存在`);
+  }
+  agents.push(agent);
+  writeAgents(agents);
+  return agents;
+}
+
+// 更新 agent
+function updateAgent(agentId, updatedAgent) {
+  const agents = readAgents();
+  const index = agents.findIndex(a => a.id === agentId);
+  if (index === -1) throw new Error('Agent 不存在');
+  agents[index] = { ...agents[index], ...updatedAgent };
+  writeAgents(agents);
+  return agents;
+}
+
+// 删除 agent
+function deleteAgent(agentId) {
+  const agents = readAgents().filter(a => a.id !== agentId);
+  writeAgents(agents);
+  return agents;
+}
+
 function readProfiles() {
   ensureProfilesDir();
   if (!fs.existsSync(PROFILES_PATH)) return {};
@@ -69,6 +111,9 @@ function writeProfiles(profiles) {
 }
 
 function createWindow() {
+  const iconPath = path.join(__dirname, 'icon.ico');
+  const icon = nativeImage.createFromPath(iconPath);
+
   mainWindow = new BrowserWindow({
     width: 900,
     height: 660,
@@ -82,7 +127,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    icon: path.join(__dirname, 'icon.ico'),
+    icon: icon,
   });
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
@@ -117,7 +162,7 @@ function createTray() {
   const iconPath = path.join(__dirname, 'icon.ico');
   const icon = nativeImage.createFromPath(iconPath);
   tray = new Tray(icon);
-  tray.setToolTip('OpenClaw Switch');
+  tray.setToolTip('OpenClaw Nexus');
   tray.on('click', () => {
     mainWindow.isVisible() ? mainWindow.hide() : mainWindow.show();
   });
@@ -220,6 +265,24 @@ ipcMain.handle('delete-model', (_, { provider, modelId }) => {
   providers[provider].models = providers[provider].models.filter(m => m.id !== modelId);
   writeProviders(providers);
   return readConfig();
+});
+
+// ── Agents ──────────────────────────────────────────────
+
+ipcMain.handle('get-agents', () => {
+  return readAgents();
+});
+
+ipcMain.handle('add-agent', (_, { agent }) => {
+  return addAgent(agent);
+});
+
+ipcMain.handle('update-agent', (_, { agentId, agent }) => {
+  return updateAgent(agentId, agent);
+});
+
+ipcMain.handle('delete-agent', (_, { agentId }) => {
+  return deleteAgent(agentId);
 });
 
 // ── Gateway ──────────────────────────────────────────────────
@@ -581,6 +644,127 @@ ipcMain.handle('run-onboard', async () => {
       resolve({ success: false, message: err.message });
     });
   });
+});
+
+// ── Terminal ──────────────────────────────────────────────────
+
+let terminalProcess = null;
+let terminalInitialized = false;
+let terminalOutputBuffer = '';
+let terminalCwd = process.cwd();
+
+function initTerminal() {
+  if (terminalProcess && !terminalProcess.killed) return;
+
+  terminalInitialized = false;
+  terminalOutputBuffer = '';
+  terminalCwd = process.cwd();
+
+  try {
+    const cwd = terminalCwd;
+
+    // 使用 /Q 隐藏版本信息，/D 禁用自动运行
+    terminalProcess = spawn('cmd.exe', ['/Q', '/D'], {
+      cwd,
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      shell: false,
+    });
+
+    // 初始化完成后立即发送当前目录给前端
+    setTimeout(() => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('terminal-cwd', terminalCwd);
+      }
+    }, 100);
+
+    terminalProcess.stdout.on('data', (data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        // 尝试用 cp936 (Windows GBK) 解码，如果失败就用 utf8
+        let text = '';
+        try {
+          // 先尝试用 binary 读取，然后手动处理
+          text = data.toString('utf8');
+        } catch {
+          text = data.toString('binary');
+        }
+
+        terminalOutputBuffer += text;
+
+        // 初始化标志：检测到第一个提示符 (通常是路径>) 或 ENTER 键后的响应
+        if (!terminalInitialized) {
+          // 如果缓冲区包含 ">" 或换行符+路径，说明初始化完成
+          if (terminalOutputBuffer.match(/\w:[^]*>\s*$/m) || terminalOutputBuffer.includes('>')) {
+            terminalInitialized = true;
+            // 只保留最后一个完整的提示符之后的内容
+            const lastPromptIndex = terminalOutputBuffer.lastIndexOf('>');
+            if (lastPromptIndex !== -1) {
+              const displayText = terminalOutputBuffer.substring(lastPromptIndex);
+              terminalOutputBuffer = displayText;
+              mainWindow.webContents.send('terminal-output', displayText);
+            }
+            // 初始化完成后，自动执行默认命令
+            setTimeout(() => {
+              if (terminalProcess && !terminalProcess.killed) {
+                terminalProcess.stdin.write('openclaw dashboard --no-open\r\n');
+              }
+            }, 200);
+          }
+          // 初始化未完成，不显示输出
+        } else {
+          // 已初始化，直接显示所有输出
+          terminalOutputBuffer = text;
+          mainWindow.webContents.send('terminal-output', text);
+        }
+      }
+    });
+
+    terminalProcess.stderr.on('data', (data) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const text = data.toString('utf8');
+        if (terminalInitialized) {
+          mainWindow.webContents.send('terminal-output', text);
+        }
+      }
+    });
+
+    terminalProcess.on('close', (code) => {
+      terminalProcess = null;
+      terminalInitialized = false;
+      terminalOutputBuffer = '';
+    });
+
+    terminalProcess.on('error', (err) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('terminal-output', `\n[错误] ${err.message}\n`);
+      }
+      terminalProcess = null;
+    });
+  } catch (err) {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('terminal-output', `\n[初始化失败] ${err.message}\n`);
+    }
+  }
+}
+
+ipcMain.handle('init-terminal', async () => {
+  initTerminal();
+  return { success: true };
+});
+
+ipcMain.handle('terminal-input', async (_, { command }) => {
+  if (!terminalProcess || terminalProcess.killed) {
+    initTerminal();
+  }
+
+  try {
+    if (terminalProcess && !terminalProcess.killed) {
+      terminalProcess.stdin.write(command + '\r\n');
+    }
+    return { success: true };
+  } catch (err) {
+    return { success: false, message: err.message };
+  }
 });
 
 // ── Window controls ──────────────────────────────────────────

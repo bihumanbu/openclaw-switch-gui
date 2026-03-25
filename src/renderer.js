@@ -69,12 +69,23 @@ function switchTab(tab) {
   });
   document.getElementById('tabConfig').classList.toggle('active', tab === 'config');
   document.getElementById('tabLogs').classList.toggle('active', tab === 'logs');
+  document.getElementById('tabTerminal').classList.toggle('active', tab === 'terminal');
+  document.getElementById('tabAgents').classList.toggle('active', tab === 'agents');
   // Show/hide primary bar based on tab
   document.getElementById('primaryBar').style.display = tab === 'config' ? '' : 'none';
   // Auto-scroll terminal when switching to logs
   if (tab === 'logs') {
     const log = document.getElementById('terminalLog');
     log.scrollTop = log.scrollHeight;
+  }
+  // Auto-scroll terminal output when switching to terminal
+  if (tab === 'terminal') {
+    const output = document.getElementById('terminalOutput');
+    output.scrollTop = output.scrollHeight;
+  }
+  // Load agents when switching to agents tab
+  if (tab === 'agents') {
+    renderAgents();
   }
 }
 
@@ -1078,5 +1089,413 @@ function sendInstallLogLine(logEl, text) {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
+// ── Terminal ──────────────────────────────────────────────
+
+function clearTerminal() {
+  document.getElementById('terminalOutput').textContent = '';
+}
+
+async function sendTerminalCommand() {
+  const input = document.getElementById('terminalInput');
+  const command = input.value;
+  if (!command.trim()) return;
+
+  try {
+    await window.api.terminalInput(command);
+    input.value = '';
+    updateTerminalSendBtn();
+  } catch (err) {
+    showToast('发送失败: ' + err.message, 'error');
+  }
+}
+
+function updateTerminalSendBtn() {
+  const input = document.getElementById('terminalInput');
+  const btn = document.getElementById('terminalSendBtn');
+  const hasContent = input.value.trim().length > 0;
+  btn.disabled = !hasContent;
+}
+
+function initTerminalUI() {
+  // Start terminal on load
+  window.api.initTerminal();
+
+  // Listen for terminal output
+  window.api.onTerminalOutput((text) => {
+    const output = document.getElementById('terminalOutput');
+    output.textContent += text;
+    output.scrollTop = output.scrollHeight;
+  });
+
+  // Listen for cwd changes
+  window.api.onTerminalCwd((cwd) => {
+    document.getElementById('terminalPath').textContent = cwd;
+  });
+
+  // Handle input
+  const input = document.getElementById('terminalInput');
+  input.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      await sendTerminalCommand();
+    }
+  });
+
+  // Update button state on input change
+  input.addEventListener('input', updateTerminalSendBtn);
+
+  // Initialize button state
+  updateTerminalSendBtn();
+
+  // Handle copy from terminal output
+  const output = document.getElementById('terminalOutput');
+  output.addEventListener('contextmenu', (e) => {
+    const selectedText = window.getSelection().toString();
+    if (selectedText) {
+      e.preventDefault();
+      // 使用 Clipboard API 复制选中文本
+      navigator.clipboard.writeText(selectedText).then(() => {
+        showToast('内容已复制', 'success');
+      }).catch(err => {
+        console.error('复制失败:', err);
+      });
+    }
+  });
+
+  // 也监听 Ctrl+C
+  output.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      const selectedText = window.getSelection().toString();
+      if (selectedText) {
+        // 让默认行为处理复制，之后显示提示
+        setTimeout(() => {
+          showToast('内容已复制', 'success');
+        }, 100);
+      }
+    }
+  });
+}
+
 // ── Start ──────────────────────────────────────────────
 init();
+initTerminalUI();
+
+// ── Agents ──────────────────────────────────────────────
+
+const AGENT_TEMPLATES = {
+  architect: { id: 'architect', name: '架构师', description: '负责系统架构设计、技术方案规划和技术决策。专长于分析需求、设计可扩展的系统架构、评估技术选型和解决技术瓶颈。' },
+  ui: { id: 'ui', name: 'UI设计师', description: '负责用户界面设计和用户体验优化。专长于设计美观易用的界面、进行用户研究、优化交互流程和品牌一致性。' },
+  pm: { id: 'pm', name: '项目经理', description: '负责项目进度管理、团队协调和风险管理。专长于制定项目计划、跟进任务执行、协调各方合作和解决项目问题。' },
+  product: { id: 'product', name: '产品经理', description: '负责产品需求定义、优先级管理和产品战略。专长于市场分析、用户需求调研、产品规划和功能设计。' },
+  dev: { id: 'dev', name: '开发人员', description: '负责代码开发和功能实现。专长于编写高质量代码、进行技术调研、解决技术问题和代码优化。' },
+  qa: { id: 'qa', name: '测试人员', description: '负责质量保证和测试工作。专长于设计测试用例、执行测试、发现和报告缺陷、确保产品质量。' },
+};
+
+let agentsData = [];
+
+async function loadAgents() {
+  try {
+    agentsData = await window.api.getAgents();
+    state.agents = agentsData;
+  } catch (err) {
+    console.error('Failed to load agents:', err);
+    agentsData = [];
+  }
+}
+
+async function renderAgents() {
+  await loadAgents();
+  const list = document.getElementById('agentsList');
+
+  if (!agentsData || agentsData.length === 0) {
+    list.innerHTML = `
+      <div class="agent-empty">
+        <div class="agent-empty-icon">🦞</div>
+        <div>暂无分身，点击"创建分身"添加你的AI团队成员</div>
+      </div>
+    `;
+    return;
+  }
+
+  list.innerHTML = agentsData.map(agent => `
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div>
+          <div class="agent-card-name">${agent.name || agent.id}</div>
+          <div class="agent-card-desc">${agent.description || '暂无描述'}</div>
+        </div>
+      </div>
+      <div class="agent-card-info">
+        <div class="agent-card-info-item">📌 ID: ${agent.id}</div>
+        ${agent.model ? `<div class="agent-card-info-item">🎯 模型: ${agent.model}</div>` : ''}
+        ${agent.workspace ? `<div class="agent-card-info-item">📁 工作区: ${agent.workspace}</div>` : ''}
+        ${agent.skills && agent.skills.length > 0 ? `<div class="agent-card-info-item">🔧 技能: ${agent.skills.length} 个</div>` : ''}
+      </div>
+      <div class="agent-card-actions">
+        <button class="btn btn-ghost btn-sm" onclick="editAgent('${agent.id}')">编辑</button>
+        <button class="btn btn-ghost btn-sm" onclick="manageSkills('${agent.id}')">技能</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteAgentConfirm('${agent.id}')">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function applyTemplate(templateId) {
+  const template = AGENT_TEMPLATES[templateId];
+  if (!template) return;
+
+  document.getElementById('newAgentId').value = template.id;
+  document.getElementById('newAgentName').value = template.name;
+  document.getElementById('newAgentDesc').value = template.description;
+}
+
+function showAddAgentModal() {
+  document.getElementById('agentModalTitle').textContent = '创建分身';
+  document.getElementById('newAgentId').value = '';
+  document.getElementById('newAgentId').disabled = false;
+  document.getElementById('newAgentName').value = '';
+  document.getElementById('newAgentDesc').value = '';
+  document.getElementById('submitAgentBtn').textContent = '创建';
+  document.getElementById('submitAgentBtn').onclick = submitAddAgent;
+
+  // 填充模型列表
+  const { providers } = state.config;
+  const modelSelect = document.getElementById('newAgentModel');
+  modelSelect.innerHTML = '<option value="">-- 选择模型 --</option>';
+
+  let firstModel = '';
+  Object.entries(providers).forEach(([provName, p]) => {
+    p.models.forEach(m => {
+      const option = document.createElement('option');
+      option.value = `${provName}/${m.id}`;
+      option.textContent = `${m.name} (${provName})`;
+      modelSelect.appendChild(option);
+      if (!firstModel) firstModel = `${provName}/${m.id}`;
+    });
+  });
+
+  // 默认选中第一个模型
+  if (firstModel) {
+    modelSelect.value = firstModel;
+  }
+
+  showModal('addAgentModal');
+}
+
+function editAgent(agentId) {
+  const agent = agentsData.find(a => a.id === agentId);
+  if (!agent) {
+    showToast('Agent 不存在', 'error');
+    return;
+  }
+
+  // 填充编辑表单
+  document.getElementById('agentModalTitle').textContent = '编辑分身';
+  document.getElementById('newAgentId').value = agent.id;
+  document.getElementById('newAgentId').disabled = true; // ID 不可修改
+  document.getElementById('newAgentName').value = agent.name || '';
+  document.getElementById('newAgentDesc').value = agent.description || '';
+  document.getElementById('submitAgentBtn').textContent = '保存';
+  document.getElementById('submitAgentBtn').onclick = () => submitEditAgent(agentId);
+
+  // 填充模型列表并回显当前选中的模型
+  const { providers } = state.config;
+  const modelSelect = document.getElementById('newAgentModel');
+  modelSelect.innerHTML = '<option value="">-- 选择模型 --</option>';
+  Object.entries(providers).forEach(([provName, p]) => {
+    p.models.forEach(m => {
+      const option = document.createElement('option');
+      option.value = `${provName}/${m.id}`;
+      option.textContent = `${m.name} (${provName})`;
+      modelSelect.appendChild(option);
+    });
+  });
+
+  // 回显当前模型
+  if (agent.model) {
+    modelSelect.value = agent.model;
+  }
+
+  showModal('addAgentModal');
+}
+
+async function submitEditAgent(agentId) {
+  const name = document.getElementById('newAgentName').value.trim();
+  const desc = document.getElementById('newAgentDesc').value.trim();
+  const model = document.getElementById('newAgentModel').value;
+
+  if (!name) {
+    showToast('请输入分身名称', 'error');
+    return;
+  }
+
+  const workspace = `~/.openclaw/workspace-${agentId}`;
+  const agent = { name, description: desc, workspace };
+  if (model) agent.model = model;
+
+  try {
+    await window.api.updateAgent(agentId, agent);
+    hideModal('addAgentModal');
+    await loadAgents();
+    renderAgents();
+    showToast(`分身 "${name}" 已更新`, 'success');
+  } catch (err) {
+    showToast('更新失败: ' + err.message, 'error');
+  }
+}
+
+async function deleteAgentConfirm(agentId) {
+  if (!confirm(`确定删除分身 "${agentId}"？`)) return;
+  try {
+    await window.api.deleteAgent(agentId);
+    renderAgents();
+    showToast('分身已删除', 'success');
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+async function submitAddAgent() {
+  const id = document.getElementById('newAgentId').value.trim();
+  const name = document.getElementById('newAgentName').value.trim();
+  const desc = document.getElementById('newAgentDesc').value.trim();
+  const model = document.getElementById('newAgentModel').value;
+
+  if (!id) {
+    showToast('请输入分身ID', 'error');
+    return;
+  }
+  if (!name) {
+    showToast('请输入分身名称', 'error');
+    return;
+  }
+
+  // 自动生成工作区路径
+  const workspace = `~/.openclaw/workspace-${id}`;
+
+  const agent = { id, name, description: desc, workspace, skills: [] };
+  if (model) agent.model = model;
+
+  try {
+    await window.api.addAgent(agent);
+    hideModal('addAgentModal');
+    renderAgents();
+    showToast(`分身 "${name}" 已创建`, 'success');
+  } catch (err) {
+    showToast('创建失败: ' + err.message, 'error');
+  }
+}
+
+// ── Skills Management ──────────────────────────────────────────────
+
+let currentSkillAgentId = null;
+
+function manageSkills(agentId) {
+  currentSkillAgentId = agentId;
+  const agent = agentsData.find(a => a.id === agentId);
+  if (!agent) {
+    showToast('Agent 不存在', 'error');
+    return;
+  }
+
+  document.getElementById('skillsModalTitle').textContent = `管理技能 - ${agent.name}`;
+  renderSkillsList(agent.skills || []);
+  showModal('manageSkillsModal');
+}
+
+function renderSkillsList(skills) {
+  const list = document.getElementById('skillsList');
+
+  if (!skills || skills.length === 0) {
+    list.innerHTML = '<div style="text-align: center; padding: 24px; color: var(--text3);">暂无技能</div>';
+    return;
+  }
+
+  list.innerHTML = skills.map((skill, index) => `
+    <div class="skill-item">
+      <div style="flex: 1;">
+        <div class="skill-item-name">${skill.name}</div>
+        <div class="skill-item-size">${formatFileSize(skill.size || 0)}</div>
+      </div>
+      <div class="skill-item-actions">
+        <button class="btn btn-ghost btn-sm" onclick="downloadSkill('${currentSkillAgentId}', ${index})">下载</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteSkill('${currentSkillAgentId}', ${index})">删除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function formatFileSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function handleSkillUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const agent = agentsData.find(a => a.id === currentSkillAgentId);
+  if (!agent) return;
+
+  try {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const content = e.target.result;
+      const skill = {
+        name: file.name,
+        size: file.size,
+        content: content,
+        uploadedAt: new Date().toISOString()
+      };
+
+      if (!agent.skills) agent.skills = [];
+      agent.skills.push(skill);
+
+      await window.api.updateAgent(currentSkillAgentId, { skills: agent.skills });
+      await loadAgents();
+      renderSkillsList(agent.skills);
+      renderAgents();
+      showToast(`技能 "${file.name}" 已上传`, 'success');
+    };
+    reader.readAsText(file);
+  } catch (err) {
+    showToast('上传失败: ' + err.message, 'error');
+  }
+
+  // 清空 input
+  event.target.value = '';
+}
+
+async function deleteSkill(agentId, skillIndex) {
+  if (!confirm('确定删除此技能？')) return;
+
+  const agent = agentsData.find(a => a.id === agentId);
+  if (!agent || !agent.skills) return;
+
+  try {
+    agent.skills.splice(skillIndex, 1);
+    await window.api.updateAgent(agentId, { skills: agent.skills });
+    await loadAgents();
+    renderSkillsList(agent.skills);
+    renderAgents();
+    showToast('技能已删除', 'success');
+  } catch (err) {
+    showToast('删除失败: ' + err.message, 'error');
+  }
+}
+
+function downloadSkill(agentId, skillIndex) {
+  const agent = agentsData.find(a => a.id === agentId);
+  if (!agent || !agent.skills || !agent.skills[skillIndex]) return;
+
+  const skill = agent.skills[skillIndex];
+  const blob = new Blob([skill.content], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = skill.name;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('技能已下载', 'success');
+}

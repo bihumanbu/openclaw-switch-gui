@@ -24,4 +24,12 @@ contextBridge.exposeInMainWorld('api', {
   checkEnv: () => ipcRenderer.invoke('check-env'),
   runOnboard: () => ipcRenderer.invoke('run-onboard'),
   onInstallOutput: (callback) => ipcRenderer.on('install-output', (_event, data) => callback(data)),
+  initTerminal: () => ipcRenderer.invoke('init-terminal'),
+  terminalInput: (command) => ipcRenderer.invoke('terminal-input', { command }),
+  onTerminalOutput: (callback) => ipcRenderer.on('terminal-output', (_event, data) => callback(data)),
+  onTerminalCwd: (callback) => ipcRenderer.on('terminal-cwd', (_event, cwd) => callback(cwd)),
+  getAgents: () => ipcRenderer.invoke('get-agents'),
+  addAgent: (agent) => ipcRenderer.invoke('add-agent', { agent }),
+  updateAgent: (agentId, agent) => ipcRenderer.invoke('update-agent', { agentId, agent }),
+  deleteAgent: (agentId) => ipcRenderer.invoke('delete-agent', { agentId }),
 });
