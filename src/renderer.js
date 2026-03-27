@@ -1505,9 +1505,7 @@ function downloadSkill(agentId, skillIndex) {
 // ── Skills Market (技能广场) ──────────────────────────────────────────────
 
 let skillsMarketData = [];
-let currentSkillsRepoPlatform = 'gitee';
-let currentSkillsRepoOwner = '';
-let currentSkillsRepoName = '';
+let currentPlatform = 'gitee';
 
 // 预设仓库配置
 const REPO_CONFIGS = {
@@ -1526,49 +1524,50 @@ const SKILL_ICONS = {
 };
 
 // 切换平台
-function switchRepoPlatform() {
- const platform = document.getElementById('skillsRepoPlatform').value;
- currentSkillsRepoPlatform = platform;
+function switchPlatform(platform) {
+ currentPlatform = platform;
+
+ // 更新按钮状态
+ document.getElementById('btnGitee').classList.toggle('active', platform === 'gitee');
+ document.getElementById('btnGithub').classList.toggle('active', platform === 'github');
+
+ // 加载配置
  loadSavedSkillsRepo();
 }
 
 // 加载保存的技能仓库配置
 function loadSavedSkillsRepo() {
- const platform = document.getElementById('skillsRepoPlatform').value;
- currentSkillsRepoPlatform = platform;
-
- const savedOwner = localStorage.getItem('skillsRepoOwner_' + platform);
- const savedName = localStorage.getItem('skillsRepoName_' + platform);
+ const savedOwner = localStorage.getItem('skillsRepoOwner_' + currentPlatform);
+ const savedName = localStorage.getItem('skillsRepoName_' + currentPlatform);
 
  if (savedOwner && savedName) {
   document.getElementById('skillsRepoOwner').value = savedOwner;
   document.getElementById('skillsRepoName').value = savedName;
   loadSkillsFromRepo();
  } else {
-  const config = REPO_CONFIGS[platform];
+  const config = REPO_CONFIGS[currentPlatform];
   document.getElementById('skillsRepoOwner').value = config.owner;
   document.getElementById('skillsRepoName').value = config.name;
-  showEmptyState();
+  loadSkillsFromRepo();
  }
 }
 
 // 显示空状态
-function showEmptyState() {
- document.getElementById('skillsMarketContainer').innerHTML = '<div class="empty" style="padding: 60px 20px;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><p style="margin-top: 16px; font-size: 14px;">尚未加载技能，请在上方输入仓库信息后点击"加载技能"</p></div>';
+function showEmptyState(message) {
+ document.getElementById('skillsMarketContainer').innerHTML = '<div class="empty" style="padding: 60px 20px;"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><p style="margin-top: 16px; font-size: 14px;">' + (message || '尚未加载技能') + '</p></div>';
 }
 
 // 重置技能仓库配置
 function resetSkillsRepo() {
- const platform = document.getElementById('skillsRepoPlatform').value;
- localStorage.removeItem('skillsRepoOwner_' + platform);
- localStorage.removeItem('skillsRepoName_' + platform);
+ localStorage.removeItem('skillsRepoOwner_' + currentPlatform);
+ localStorage.removeItem('skillsRepoName_' + currentPlatform);
 
- const config = REPO_CONFIGS[platform];
+ const config = REPO_CONFIGS[currentPlatform];
  document.getElementById('skillsRepoOwner').value = config.owner;
  document.getElementById('skillsRepoName').value = config.name;
 
  skillsMarketData = [];
- showEmptyState();
+ showEmptyState('已重置，点击平台按钮重新加载');
 }
 
 // 解析技能 README 内容
@@ -1600,7 +1599,7 @@ function parseSkillReadme(content) {
    } else if (currentSection === '技能类型') {
     const tagMatches = line.match(/`([^`]+)`/g);
     if (tagMatches) {
-     result.tags = tagMatches.map(t => t.substring(1, t.length - 1));
+     result.tags = tagMatches.map(function(t) { return t.substring(1, t.length - 1); });
     }
    } else {
     sectionContent.push(line);
@@ -1615,8 +1614,8 @@ function parseSkillReadme(content) {
 
 // 获取技能图标
 function getSkillIcon(tags) {
- for (const tag of tags) {
-  const lowerTag = tag.toLowerCase();
+ for (let i = 0; i < tags.length; i++) {
+  const lowerTag = tags[i].toLowerCase();
   if (lowerTag.includes('搜索') || lowerTag.includes('search')) return SKILL_ICONS.search;
   if (lowerTag.includes('代码') || lowerTag.includes('code') || lowerTag.includes('开发')) return SKILL_ICONS.code;
   if (lowerTag.includes('数据') || lowerTag.includes('data')) return SKILL_ICONS.data;
@@ -1648,16 +1647,18 @@ async function loadSkillsFromRepo() {
  }
 
  const repoName = name.replace('.git', '');
- localStorage.setItem('skillsRepoOwner_' + currentSkillsRepoPlatform, owner);
- localStorage.setItem('skillsRepoName_' + currentSkillsRepoPlatform, repoName);
+ localStorage.setItem('skillsRepoOwner_' + currentPlatform, owner);
+ localStorage.setItem('skillsRepoName_' + currentPlatform, repoName);
 
  showToast('正在加载技能列表...', 'success');
 
  try {
-  const isGitee = currentSkillsRepoPlatform === 'gitee';
-  const apiUrl = isGitee
-   ? 'https://gitee.com/api/v5/repos/' + owner + '/' + repoName + '/contents/skills'
-   : 'https://api.github.com/repos/' + owner + '/' + repoName + '/contents/skills';
+  let apiUrl;
+  if (currentPlatform === 'gitee') {
+   apiUrl = 'https://gitee.com/api/v5/repos/' + owner + '/' + repoName + '/contents/skills';
+  } else {
+   apiUrl = 'https://api.github.com/repos/' + owner + '/' + repoName + '/contents/skills';
+  }
 
   const response = await fetch(apiUrl);
 
@@ -1669,18 +1670,23 @@ async function loadSkillsFromRepo() {
    } else {
     showToast('加载失败：HTTP ' + response.status, 'error');
    }
+   showEmptyState('加载失败，请检查仓库配置');
    return;
   }
 
   const data = await response.json();
   skillsMarketData = [];
 
-  for (const item of data) {
+  for (let i = 0; i < data.length; i++) {
+   const item = data[i];
    if (item.type === 'dir') {
     const skillFolder = item.name;
-    const readmeUrl = isGitee
-     ? 'https://gitee.com/api/v5/repos/' + owner + '/' + repoName + '/contents/skills/' + skillFolder + '/README.md'
-     : 'https://api.github.com/repos/' + owner + '/' + repoName + '/contents/skills/' + skillFolder + '/README.md';
+    let readmeUrl;
+    if (currentPlatform === 'gitee') {
+     readmeUrl = 'https://gitee.com/api/v5/repos/' + owner + '/' + repoName + '/contents/skills/' + skillFolder + '/README.md';
+    } else {
+     readmeUrl = 'https://api.github.com/repos/' + owner + '/' + repoName + '/contents/skills/' + skillFolder + '/README.md';
+    }
 
     try {
      const readmeResp = await fetch(readmeUrl);
@@ -1689,17 +1695,21 @@ async function loadSkillsFromRepo() {
       const readmeContent = atob(readmeData.content);
       const parsed = parseSkillReadme(readmeContent);
 
+      let downloadUrl;
+      if (currentPlatform === 'gitee') {
+       downloadUrl = 'https://gitee.com/' + owner + '/' + repoName + '/raw/main/skills/' + skillFolder + '/README.md';
+      } else {
+       downloadUrl = readmeData.download_url;
+      }
+
       skillsMarketData.push({
        name: skillFolder,
        title: parsed.title || skillFolder,
        description: parsed.description || '暂无描述',
        tags: parsed.tags,
        sections: parsed.sections,
-       readmeUrl: readmeUrl,
        readmeContent: readmeContent,
-       downloadUrl: isGitee
-        ? 'https://gitee.com/' + owner + '/' + repoName + '/raw/main/skills/' + skillFolder + '/README.md'
-        : readmeData.download_url
+       downloadUrl: downloadUrl
       });
      }
     } catch (e) {
@@ -1712,18 +1722,16 @@ async function loadSkillsFromRepo() {
   showToast('成功加载 ' + skillsMarketData.length + ' 个技能', 'success');
  } catch (err) {
   showToast('加载失败：' + err.message, 'error');
+  showEmptyState('加载失败：' + err.message);
  }
 }
 
-async function refreshSkills() {
- await loadSkillsFromRepo();
-}
-
+// 渲染技能卡片
 function renderSkillsCards() {
  const container = document.getElementById('skillsMarketContainer');
 
  if (skillsMarketData.length === 0) {
-  showEmptyState();
+  showEmptyState('该仓库中没有找到技能');
   return;
  }
 
@@ -1732,7 +1740,7 @@ function renderSkillsCards() {
   const skill = skillsMarketData[i];
   const icon = getSkillIcon(skill.tags);
   const tagsHtml = skill.tags.map(function(tag) { return '<span class="skill-tag ' + getTagClass(tag) + '">' + tag + '</span>'; }).join('');
-  const preview = skill.readmeContent.length > 150 ? skill.readmeContent.substring(0, 150) + '...' : skill.readmeContent;
+  const preview = skill.readmeContent.length > 200 ? skill.readmeContent.substring(0, 200).replace(/\n/g, ' ') + '...' : skill.readmeContent.replace(/\n/g, ' ');
 
   html += '<div class="skill-card" onclick="showSkillDetail(' + i + ')">';
   html += '<div class="skill-card-header">';
@@ -1742,16 +1750,22 @@ function renderSkillsCards() {
   html += '<p class="skill-card-desc">' + skill.description + '</p>';
   html += '<div class="skill-card-tags">' + tagsHtml + '</div>';
   html += '<div class="skill-card-preview">' + preview + '</div>';
-  html += '<div class="skill-card-actions">';
-  html += '<button class="skill-card-btn ghost" onclick="event.stopPropagation(); downloadSkill(' + i + ')">下载</button>';
-  html += '<button class="skill-card-btn primary" onclick="event.stopPropagation(); showSkillDetail(' + i + ')">查看详情</button>';
-  html += '</div>';
+  html += '<button class="skill-download-btn" onclick="event.stopPropagation(); downloadSkill(' + i + ')">';
+  html += '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">';
+  html += '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>';
+  html += '<polyline points="7 10 12 15 17 10"/>';
+  html += '<line x1="12" y1="15" x2="12" y2="3"/>';
+  html += '</svg>';
+  html += '<span>下载</span>';
+  html += '</button>';
   html += '</div>';
  }
  html += '</div>';
+
  container.innerHTML = html;
 }
 
+// 显示技能详情
 function showSkillDetail(index) {
  const skill = skillsMarketData[index];
  if (!skill) return;
@@ -1770,13 +1784,14 @@ function showSkillDetail(index) {
  document.body.appendChild(modal);
 }
 
+// 下载技能
 async function downloadSkill(index) {
  const skill = skillsMarketData[index];
  if (!skill) return;
 
  try {
   showToast('正在下载技能...', 'success');
-  const response = await fetch(skill.readmeUrl);
+  const response = await fetch(skill.downloadUrl);
   if (!response.ok) throw new Error('下载失败');
   const content = await response.text();
 
