@@ -1674,8 +1674,8 @@ async function loadSkillsFromRepo() {
 
  try {
   const apiUrl = isGitee
-   ? `https://gitee.com/api/v5/repos/${owner}/${name}/contents/skills`
-   : `https://api.github.com/repos/${owner}/${name}/contents/skills`;
+   ? `https://gitee.com/api/v5/repos/${owner}/${repoName}/contents/skills`
+   : `https://api.github.com/repos/${owner}/${repoName}/contents/skills`;
 
   const response = await fetch(apiUrl);
 
@@ -1697,8 +1697,8 @@ async function loadSkillsFromRepo() {
    if (item.type === 'dir') {
     const skillFolder = item.name;
     const readmeUrl = isGitee
-     ? `https://gitee.com/api/v5/repos/${owner}/${name}/contents/skills/${skillFolder}/README.md`
-     : `https://api.github.com/repos/${owner}/${name}/contents/skills/${skillFolder}/README.md`;
+     ? `https://gitee.com/api/v5/repos/${owner}/${repoName}/contents/skills/${skillFolder}/README.md`
+     : `https://api.github.com/repos/${owner}/${repoName}/contents/skills/${skillFolder}/README.md`;
 
     try {
      const readmeResp = await fetch(readmeUrl);
@@ -1716,7 +1716,7 @@ async function loadSkillsFromRepo() {
        readmeUrl: readmeUrl,
        readmeContent: readmeContent,
        downloadUrl: isGitee
-        ? `https://gitee.com/${owner}/${name}/raw/master/skills/${skillFolder}/README.md`
+        ? `https://gitee.com/${owner}/${repoName}/raw/master/skills/${skillFolder}/README.md`
         : readmeData.download_url
       });
      }
@@ -1734,7 +1734,9 @@ async function loadSkillsFromRepo() {
 }
 
 async function refreshSkills() {
- if (currentSkillsRepoUrl) {
+ const owner = document.getElementById('skillsRepoOwner').value.trim();
+ const name = document.getElementById('skillsRepoName').value.trim();
+ if (owner && name) {
   await loadSkillsFromRepo();
  } else {
   loadSavedSkillsRepo();
