@@ -1038,7 +1038,256 @@
     .template-btn:active {
       transform: scale(0.98);
     }
-  </style>
+  
+/* ── Skills Market Cards ── */
+.skills-grid {
+ display: grid;
+ grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+ gap: 16px;
+}
+
+.skill-card {
+ background: var(--bg2);
+ border: 1px solid var(--border);
+ border-radius: 12px;
+ padding: 18px;
+ cursor: pointer;
+ transition: all 0.2s;
+ display: flex;
+ flex-direction: column;
+ gap: 12px;
+}
+
+.skill-card:hover {
+ border-color: var(--accent);
+ background: rgba(79,142,247,0.08);
+ transform: translateY(-2px);
+ box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+.skill-card-header {
+ display: flex;
+ align-items: flex-start;
+ justify-content: space-between;
+ gap: 12px;
+}
+
+.skill-card-icon {
+ width: 44px;
+ height: 44px;
+ background: var(--bg3);
+ border-radius: 10px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ font-size: 22px;
+ flex-shrink: 0;
+}
+
+.skill-card-title {
+ font-size: 15px;
+ font-weight: 600;
+ color: var(--text);
+ margin: 0;
+}
+
+.skill-card-desc {
+ font-size: 12px;
+ color: var(--text3);
+ line-height: 1.5;
+ flex: 1;
+ overflow: hidden;
+ display: -webkit-box;
+ -webkit-line-clamp: 3;
+ -webkit-box-orient: vertical;
+}
+
+.skill-card-tags {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 6px;
+}
+
+.skill-tag {
+ font-size: 10px;
+ padding: 3px 8px;
+ border-radius: 10px;
+ background: var(--bg3);
+ color: var(--text2);
+}
+
+.skill-tag.search { background: rgba(59,130,246,0.15); color: #60a5fa; }
+.skill-tag.code { background: rgba(168,85,247,0.15); color: #c084fc; }
+.skill-tag.data { background: rgba(34,197,94,0.15); color: #4ade80; }
+.skill-tag.text { background: rgba(245,158,11,0.15); color: #fbbf24; }
+.skill-tag.tool { background: rgba(236,72,153,0.15); color: #f472b6; }
+
+.skill-card-preview {
+ background: var(--bg3);
+ border-radius: 8px;
+ padding: 12px;
+ font-size: 11px;
+ color: var(--text2);
+ line-height: 1.6;
+ max-height: 80px;
+ overflow: hidden;
+ font-family: Cascadia Code, Consolas, monospace;
+}
+
+.skill-card-actions {
+ display: flex;
+ gap: 8px;
+ padding-top: 8px;
+ border-top: 1px solid var(--border);
+}
+
+.skill-card-btn {
+ flex: 1;
+ padding: 8px;
+ border-radius: 8px;
+ border: none;
+ font-size: 12px;
+ font-weight: 500;
+ cursor: pointer;
+ transition: all 0.15s;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ gap: 6px;
+}
+
+.skill-card-btn.primary {
+ background: var(--accent);
+ color: #fff;
+}
+
+.skill-card-btn.primary:hover {
+ background: var(--accent2);
+}
+
+.skill-card-btn.ghost {
+ background: var(--bg3);
+ color: var(--text2);
+ border: 1px solid var(--border);
+}
+
+.skill-card-btn.ghost:hover {
+ color: var(--text);
+ border-color: var(--text3);
+}
+
+/* Skill Detail Modal */
+.skill-detail-modal {
+ position: fixed;
+ inset: 0;
+ background: rgba(0,0,0,0.8);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ z-index: 200;
+ backdrop-filter: blur(4px);
+}
+
+.skill-detail-modal.hidden {
+ display: none;
+}
+
+.skill-detail-content {
+ background: var(--bg2);
+ border: 1px solid var(--border);
+ border-radius: 14px;
+ width: 700px;
+ max-width: 90vw;
+ max-height: 85vh;
+ display: flex;
+ flex-direction: column;
+ overflow: hidden;
+}
+
+.skill-detail-header {
+ padding: 20px 24px;
+ border-bottom: 1px solid var(--border);
+ display: flex;
+ align-items: flex-start;
+ justify-content: space-between;
+ gap: 16px;
+}
+
+.skill-detail-title {
+ font-size: 18px;
+ font-weight: 600;
+ color: var(--text);
+ margin: 0;
+}
+
+.skill-detail-close {
+ width: 32px;
+ height: 32px;
+ border-radius: 8px;
+ border: none;
+ background: var(--bg3);
+ color: var(--text2);
+ cursor: pointer;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ transition: all 0.15s;
+}
+
+.skill-detail-close:hover {
+ background: var(--red);
+ color: #fff;
+}
+
+.skill-detail-body {
+ padding: 24px;
+ overflow-y: auto;
+ flex: 1;
+}
+
+.skill-detail-section {
+ margin-bottom: 20px;
+}
+
+.skill-detail-section-title {
+ font-size: 12px;
+ font-weight: 600;
+ color: var(--text3);
+ text-transform: uppercase;
+ letter-spacing: 0.06em;
+ margin-bottom: 10px;
+}
+
+.skill-detail-text {
+ font-size: 13px;
+ color: var(--text2);
+ line-height: 1.7;
+ white-space: pre-wrap;
+}
+
+.skill-detail-meta {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 12px;
+ margin-top: 12px;
+}
+
+.skill-detail-meta-item {
+ font-size: 11px;
+ color: var(--text3);
+ background: var(--bg3);
+ padding: 4px 10px;
+ border-radius: 6px;
+}
+
+.skill-detail-actions {
+ padding: 16px 24px;
+ border-top: 1px solid var(--border);
+ display: flex;
+ gap: 10px;
+ justify-content: flex-end;
+}
+</style>
 </head>
 <body>
 
@@ -1070,6 +1319,7 @@
   <div class="tab-item" data-tab="logs" onclick="switchTab('logs')">启动日志</div>
   <div class="tab-item" data-tab="terminal" onclick="switchTab('terminal')">命令终端</div>
   <div class="tab-item" data-tab="agents" onclick="switchTab('agents')">龙虾分身</div>
+ <div class="tab-item" data-tab="skills-market" onclick="switchTab('skills-market')">技能广场</div>
 </div>
 
 <!-- Primary Model Bar -->
@@ -1143,6 +1393,46 @@
     </div>
     <div class="agents-list" id="agentsList"></div>
   </div>
+ </div>
+</div>
+
+<!-- Tab: 技能广场 -->
+<div class="tab-panel" id="tabSkillsMarket">
+ <div class="main">
+ <!-- 仓库配置 -->
+ <div class="card" style="margin-bottom: 20px;">
+ <div class="card-title">技能仓库配置</div>
+ <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 12px;">
+ <select class="form-select" id="skillsRepoPlatform" onchange="switchRepoPlatform()">
+ <option value="gitee">Gitee (国内)</option>
+ <option value="github">GitHub</option>
+ </select>
+ <input class="form-input" id="skillsRepoOwner" placeholder="输入用户名/组织" style="flex: 1;">
+ <span style="color: var(--text3); font-size: 12px;">/</span>
+ <input class="form-input" id="skillsRepoName" placeholder="仓库名" style="flex: 1;">
+ </div>
+ <div style="display: flex; gap: 10px; align-items: center;">
+ <button class="btn btn-primary" onclick="loadSkillsFromRepo()">加载技能</button>
+ <button class="btn btn-ghost" onclick="resetSkillsRepo()">重置</button>
+ </div>
+ <div style="font-size: 11px; color: var(--text3); margin-top: 8px;">
+ 💡 提示：技能文件需要放在仓库的 <code>skills/</code> 目录下，每个技能一个子文件夹，包含 README.md 说明文档
+ </div>
+ </div>
+
+ <!-- 技能卡片列表 -->
+ <div id="skillsMarketContainer">
+ <div class="empty" style="padding: 60px 20px;">
+ <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;">
+ <rect x="3" y="3" width="7" height="7" rx="1"/>
+ <rect x="14" y="3" width="7" height="7" rx="1"/>
+ <rect x="3" y="14" width="7" height="7" rx="1"/>
+ <rect x="14" y="14" width="7" height="7" rx="1"/>
+ </svg>
+ <p style="margin-top: 16px; font-size: 14px;">尚未加载技能，请在上方输入仓库信息后点击"加载技能"</p>
+ </div>
+ </div>
+ </div>
 </div>
 
 <!-- Modal: Add Provider -->
