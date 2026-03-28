@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-03-28T06:26:34.594Z",
+  "skills": [
+    {
+      "name": "api-key-manager",
+      "title": "api-key-manager",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/api-key-manager/README.md"
+    },
+    {
+      "name": "code-review",
+      "title": "code-review",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/code-review/README.md"
+    },
+    {
+      "name": "data-analysis",
+      "title": "data-analysis",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/data-analysis/README.md"
+    },
+    {
+      "name": "document-summarizer",
+      "title": "document-summarizer",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/document-summarizer/README.md"
+    },
+    {
+      "name": "knowledge-base",
+      "title": "knowledge-base",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/knowledge-base/README.md"
+    },
+    {
+      "name": "learning-assistant",
+      "title": "learning-assistant",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/learning-assistant/README.md"
+    },
+    {
+      "name": "prompt-optimizer",
+      "title": "prompt-optimizer",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/prompt-optimizer/README.md"
+    },
+    {
+      "name": "task-planner",
+      "title": "task-planner",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/task-planner/README.md"
+    },
+    {
+      "name": "web-search",
+      "title": "web-search",
+      "description": "来自 bihumanbu/skills-repo 的技能",
+      "tags": [],
+      "author": "bihumanbu",
+      "downloadUrl": "https://raw.githubusercontent.com/bihumanbu/skills-repo/main/skills/web-search/README.md"
+    }
+  ]
+}
