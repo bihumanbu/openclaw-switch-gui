@@ -4,9 +4,25 @@ const fs = require('fs');
 const { execSync, spawn } = require('child_process');
 const net = require('net');
 
+// 单实例锁 - 防止多个实例运行
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+ app.quit();
+} else {
+ app.on('second-instance', () => {
+ // 当有第二个实例时，显示主窗口
+ if (mainWindow) {
+ mainWindow.show();
+ if (mainWindow.isMinimized()) mainWindow.restore();
+ mainWindow.focus();
+ }
+ });
+}
+
 // openclaw.json 是真正的配置文件，providers 在 models.providers 下，primary 在 agents.defaults.model.primary 下
-const CONFIG_PATH = path.join(process.env.USERPROFILE || process.env.HOME, '.openclaw/openclaw.json');
-const PROFILES_PATH = path.join(process.env.USERPROFILE || process.env.HOME, '.openclaw-switch/profiles.json');
+const getUserHome = () => process.env.USERPROFILE || process.env.HOME;
+const CONFIG_PATH = path.join(getUserHome(), '.openclaw/openclaw.json');
+const PROFILES_PATH = path.join(getUserHome(), '.openclaw-switch/profiles.json');
 
 let mainWindow;
 let tray;
@@ -115,10 +131,10 @@ function createWindow() {
   const icon = nativeImage.createFromPath(iconPath);
 
   mainWindow = new BrowserWindow({
-    width: 900,
-    height: 660,
-    minWidth: 800,
-    minHeight: 560,
+ width: 1200,
+ height: 800,
+ minWidth: 1000,
+ minHeight: 700,
     frame: false,
     transparent: false,
     backgroundColor: '#0f1117',
@@ -768,6 +784,71 @@ ipcMain.handle('terminal-input', async (_, { command }) => {
 });
 
 // ── Window controls ──────────────────────────────────────────
+
+// 获取本地技能数据
+ipcMain.handle('get-local-skills', async () => {
+ try {
+ // app.getAppPath() 返回应用根目录
+ const appPath = app.getAppPath();
+ const skillsIndexPath = path.join(appPath, 'skills-index-temp', 'index.json');
+
+ console.log('Trying to load skills from:', skillsIndexPath);
+
+ if (fs.existsSync(skillsIndexPath)) {
+ const data = JSON.parse(fs.readFileSync(skillsIndexPath, 'utf8'));
+ console.log('Loaded skills count:', data.skills ? data.skills.length : 0);
+ return { success: true, skills: data.skills || [] };
+ }
+ console.log('Skills index file not found at:', skillsIndexPath);
+ return { success: false, message: '未找到技能索引文件：' + skillsIndexPath };
+ } catch (err) {
+ console.error('Error loading skills:', err);
+ return { success: false, message: err.message };
+ }
+});
+
+// 导入技能到分身
+ipcMain.handle('import-skill-to-agent', async (_, { agentId, skill }) => {
+ try {
+  // 如果前端已经传递了 content，直接使用；否则从 downloadUrl 下载
+  let content = skill.content;
+  if (!content && skill.downloadUrl) {
+   const response = await fetch(skill.downloadUrl);
+   if (!response.ok) throw new Error("下载失败");
+   content = await response.text();
+  }
+  if (!content) throw new Error("技能内容为空");
+
+ // 读取当前分身列表
+ const agents = readAgents();
+ const agentIndex = agents.findIndex(a => a.id === agentId);
+
+ if (agentIndex === -1) {
+ return { success: false, message: '分身不存在' };
+ }
+
+ if (!agents[agentIndex].skills) {
+ agents[agentIndex].skills = [];
+ }
+
+ // 添加新技能
+ const newSkill = {
+ name: skill.name,
+ size: content.length,
+ content: content,
+ uploadedAt: new Date().toISOString()
+ };
+
+ agents[agentIndex].skills.push(newSkill);
+
+ // 保存更新
+ writeAgents(agents);
+
+ return { success: true };
+ } catch (err) {
+ return { success: false, message: err.message };
+ }
+});
 
 ipcMain.on('window-minimize', () => mainWindow.minimize());
 ipcMain.on('window-close', () => mainWindow.hide());

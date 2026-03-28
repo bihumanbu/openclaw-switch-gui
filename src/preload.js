@@ -32,4 +32,6 @@ contextBridge.exposeInMainWorld('api', {
   addAgent: (agent) => ipcRenderer.invoke('add-agent', { agent }),
   updateAgent: (agentId, agent) => ipcRenderer.invoke('update-agent', { agentId, agent }),
   deleteAgent: (agentId) => ipcRenderer.invoke('delete-agent', { agentId }),
+ getLocalSkills: () => ipcRenderer.invoke('get-local-skills'),
+ importSkillToAgent: (agentId, skill) => ipcRenderer.invoke('import-skill-to-agent', { agentId, skill }),
 });
