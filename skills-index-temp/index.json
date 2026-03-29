@@ -121,13 +121,12 @@
     },
     {
       "name": "baoyu-article-illustrator",
-      "title": "Article Illustrator",
-      "description": "name: baoyu-article-illustrator",
+      "title": "文章插图生成",
+      "description": "根据文章内容自动生成配图插图，提升文章视觉表现力",
       "tags": [
-        "name",
-        "baoyu",
-        "visual",
-        "aids"
+        "图像",
+        "创作",
+        "文章"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -136,13 +135,12 @@
     },
     {
       "name": "baoyu-comic",
-      "title": "Knowledge Comic Creator",
-      "description": "name: baoyu-comic",
+      "title": "知识漫画创作",
+      "description": "将知识内容转化为漫画形式的可视化创作工具",
       "tags": [
-        "name",
-        "baoyu",
-        "comic",
-        "comic"
+        "漫画",
+        "创作",
+        "可视化"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -151,13 +149,12 @@
     },
     {
       "name": "baoyu-compress-image",
-      "title": "Image Compressor",
-      "description": "name: baoyu-compress-image",
+      "title": "图片压缩",
+      "description": "智能压缩图片文件大小，在保持画质的前提下减小体积",
       "tags": [
-        "name",
-        "baoyu",
-        "image",
-        "images"
+        "图片",
+        "压缩",
+        "工具"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -166,13 +163,12 @@
     },
     {
       "name": "baoyu-cover-image",
-      "title": "Cover Image Generator",
-      "description": "name: baoyu-cover-image",
+      "title": "封面图生成",
+      "description": "自动生成文章或内容的精美封面图片",
       "tags": [
-        "name",
-        "baoyu",
-        "cover",
-        "image"
+        "图像",
+        "封面",
+        "创作"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -181,13 +177,12 @@
     },
     {
       "name": "baoyu-danger-gemini-web",
-      "title": "Gemini Web Client",
-      "description": "name: baoyu-danger-gemini-web",
+      "title": "Gemini 网页客户端",
+      "description": "通过网页客户端访问 Google Gemini 模型",
       "tags": [
-        "name",
-        "baoyu",
-        "danger",
-        "gemini"
+        "AI",
+        "网页",
+        "工具"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -196,13 +191,12 @@
     },
     {
       "name": "baoyu-danger-x-to-markdown",
-      "title": "X to Markdown",
-      "description": "name: baoyu-danger-x-to-markdown",
+      "title": "X 推文转 Markdown",
+      "description": "将 X(Twitter) 推文内容转换为 Markdown 格式",
       "tags": [
-        "name",
-        "baoyu",
-        "danger",
-        "to"
+        "社交媒体",
+        "转换",
+        "Markdown"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -211,13 +205,12 @@
     },
     {
       "name": "baoyu-format-markdown",
-      "title": "Markdown Formatter",
-      "description": "name: baoyu-format-markdown",
+      "title": "Markdown 格式化",
+      "description": "自动格式化和美化 Markdown 文档内容",
       "tags": [
-        "name",
-        "baoyu",
-        "format",
-        "plain"
+        "Markdown",
+        "格式化",
+        "文档"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -226,13 +219,12 @@
     },
     {
       "name": "baoyu-image-gen",
-      "title": "Image Generation (AI SDK)",
-      "description": "name: baoyu-image-gen",
+      "title": "AI 图片生成",
+      "description": "基于 AI SDK 调用模型生成图片",
       "tags": [
-        "name",
-        "baoyu",
-        "image",
-        "gen"
+        "图像",
+        "AI",
+        "生成"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -241,13 +233,12 @@
     },
     {
       "name": "baoyu-imagine",
-      "title": "Image Generation (AI SDK)",
-      "description": "name: baoyu-imagine",
+      "title": "AI 图片生成",
+      "description": "使用 AI 模型生成图片，支持多种风格和场景",
       "tags": [
-        "name",
-        "baoyu",
+        "图像",
         "AI",
-        "image"
+        "生成"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -256,13 +247,12 @@
     },
     {
       "name": "baoyu-infographic",
-      "title": "Infographic Generator",
-      "description": "name: baoyu-infographic",
+      "title": "信息图生成",
+      "description": "自动生成精美的信息图表，数据可视化呈现",
       "tags": [
-        "name",
-        "baoyu",
-        "with",
-        "layout"
+        "信息图",
+        "可视化",
+        "图表"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -271,13 +261,12 @@
     },
     {
       "name": "baoyu-markdown-to-html",
-      "title": "Markdown to HTML Converter",
-      "description": "name: baoyu-markdown-to-html",
+      "title": "Markdown 转 HTML",
+      "description": "将 Markdown 文档转换为带样式的 HTML 页面",
       "tags": [
-        "name",
-        "baoyu",
-        "to",
-        "html"
+        "Markdown",
+        "HTML",
+        "转换"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -286,13 +275,12 @@
     },
     {
       "name": "baoyu-post-to-wechat",
-      "title": "Post to WeChat Official Account",
-      "description": "name: baoyu-post-to-wechat",
+      "title": "发布到微信公众号",
+      "description": "将文章内容一键发布到微信公众号平台",
       "tags": [
-        "name",
-        "baoyu",
-        "post",
-        "to"
+        "微信",
+        "发布",
+        "社交媒体"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -301,13 +289,12 @@
     },
     {
       "name": "baoyu-post-to-weibo",
-      "title": "Post to Weibo",
-      "description": "name: baoyu-post-to-weibo",
+      "title": "发布到微博",
+      "description": "将内容一键发布到微博平台",
       "tags": [
-        "name",
-        "baoyu",
-        "post",
-        "to"
+        "微博",
+        "发布",
+        "社交媒体"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -316,13 +303,12 @@
     },
     {
       "name": "baoyu-post-to-x",
-      "title": "Post to X (Twitter)",
-      "description": "name: baoyu-post-to-x",
+      "title": "发布到 X(Twitter)",
+      "description": "将内容一键发布到 X/Twitter 平台",
       "tags": [
-        "name",
-        "baoyu",
-        "post",
-        "to"
+        "X",
+        "Twitter",
+        "发布"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -331,13 +317,12 @@
     },
     {
       "name": "baoyu-slide-deck",
-      "title": "Slide Deck Generator",
-      "description": "name: baoyu-slide-deck",
+      "title": "幻灯片生成",
+      "description": "自动生成演示文稿幻灯片，支持多种主题风格",
       "tags": [
-        "name",
-        "baoyu",
-        "slide",
-        "deck"
+        "幻灯片",
+        "PPT",
+        "演示"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -346,13 +331,12 @@
     },
     {
       "name": "baoyu-translate",
-      "title": "Translator",
-      "description": "name: baoyu-translate",
+      "title": "智能翻译",
+      "description": "支持快速、标准、精细三种翻译模式，可自定义术语表",
       "tags": [
-        "name",
-        "baoyu",
-        "and",
-        "with"
+        "翻译",
+        "语言",
+        "效率"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -361,13 +345,12 @@
     },
     {
       "name": "baoyu-url-to-markdown",
-      "title": "URL to Markdown",
-      "description": "name: baoyu-url-to-markdown",
+      "title": "网页转 Markdown",
+      "description": "将任意网页 URL 内容提取并转换为 Markdown 格式",
       "tags": [
-        "name",
-        "baoyu",
-        "url",
-        "to"
+        "网页",
+        "Markdown",
+        "抓取"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -376,13 +359,12 @@
     },
     {
       "name": "baoyu-xhs-images",
-      "title": "Xiaohongshu Infographic Series Generator",
-      "description": "name: baoyu-xhs-images",
+      "title": "小红书图文生成",
+      "description": "生成小红书风格的图文笔记内容，含配图和文案",
       "tags": [
-        "name",
-        "baoyu",
-        "xhs",
-        "images"
+        "小红书",
+        "图文",
+        "创作"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
@@ -391,13 +373,12 @@
     },
     {
       "name": "baoyu-youtube-transcript",
-      "title": "YouTube Transcript",
-      "description": "name: baoyu-youtube-transcript",
+      "title": "YouTube 字幕提取",
+      "description": "提取 YouTube 视频的字幕和转录文本内容",
       "tags": [
-        "name",
-        "baoyu",
-        "video",
-        "and"
+        "YouTube",
+        "字幕",
+        "视频"
       ],
       "author": "JimLiu",
       "sourceRepo": "JimLiu/baoyu-skills",
