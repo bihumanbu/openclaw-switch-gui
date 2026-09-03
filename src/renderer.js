@@ -216,6 +216,26 @@ function renderTerminalLog() {
   logEl.scrollTop = logEl.scrollHeight;
 }
 
+function copyLog() {
+  const text = logLines.join('\n');
+  if (!text) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('#tabLogs .btn');
+    if (!btn) return;
+    const orig = btn.textContent;
+    btn.textContent = '✅ 已复制';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
 // ── Gateway ──────────────────────────────────────────────
 async function checkGatewayStatus() {
   try {
@@ -827,12 +847,12 @@ async function wizCheckEnv() {
   const ocBadge = document.getElementById('wiz-oc-badge');
   const msg = document.getElementById('wizEnvMsg');
 
-  // Node.js - 检查版本是否 >= 22.16.0
+  // Node.js - 检查版本是否 >= 22.22.3
   if (env.node && !env.needNodeUpgrade) {
     nodeBadge.textContent = env.node;
     nodeBadge.className = 'wiz-env-badge ok';
   } else if (env.node && env.needNodeUpgrade) {
-    nodeBadge.textContent = env.node + ' (需要 ≥22.16.0)';
+    nodeBadge.textContent = env.node + ' (需要 ≥22.22.3)';
     nodeBadge.className = 'wiz-env-badge missing';
   } else {
     nodeBadge.textContent = '未安装';
@@ -884,7 +904,7 @@ async function wizCheckEnv() {
 
   // Something missing or needs upgrade
   const missing = [];
-  if (!env.node || env.needNodeUpgrade) missing.push('Node.js ≥22.16.0');
+  if (!env.node || env.needNodeUpgrade) missing.push('Node.js ≥22.22.3');
   if (!env.openclaw) missing.push('OpenClaw');
   msg.textContent = '缺少: ' + missing.join('、') + '，点击"开始安装"继续。';
   msg.style.color = 'var(--yellow)';
@@ -923,7 +943,7 @@ async function wizStartInstall() {
   const needNode = !env.node || !env.npm || env.needNodeUpgrade;
 
   if (needNode) {
-    const reason = env.needNodeUpgrade ? `升级 Node.js (当前 ${env.node}，需要 ≥22.16.0)` : '安装 Node.js v22.16.0';
+    const reason = env.needNodeUpgrade ? `升级 Node.js (当前 ${env.node}，需要 ≥22.22.3)` : '安装 Node.js v22.23.0';
     subEl.textContent = `步骤 1/3 — ${reason}`;
     statusEl.textContent = `正在下载 Node.js 安装包...`;
     fillEl.style.width = '5%';

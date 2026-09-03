@@ -554,6 +554,10 @@
       overflow-y: auto;
       white-space: pre-wrap;
       word-break: break-all;
+      user-select: text;
+    }
+    .terminal-log::selection {
+      background: rgba(80, 180, 255, 0.3);
     }
     .terminal-log .log-line-err { color: var(--red); }
     .terminal-empty {
@@ -1585,7 +1589,7 @@
 <div class="titlebar">
   <div class="titlebar-logo">
     <img src="icon.svg" alt="OpenClaw" style="width: 18px; height: 18px;">
-    OpenClaw Nexus <span style="color:var(--text3); font-weight:400; font-size:11px; margin-left:4px;">Siege lion勇哥出品</span>
+    OpenClaw Nexus <span style="color:var(--text3); font-weight:400; font-size:11px; margin-left:4px;">陈碧勇出品</span>
   </div>
   <div class="titlebar-spacer"></div>
   <div class="titlebar-btns">
@@ -1645,6 +1649,10 @@
 
 <!-- Tab: 启动日志 -->
 <div class="tab-panel" id="tabLogs">
+  <div class="terminal-header" style="border-bottom:1px solid var(--border);padding:4px 12px;display:flex;align-items:center;justify-content:space-between;min-height:32px;">
+    <span class="terminal-title" style="font-size:12px;">启动日志</span>
+    <button class="btn btn-ghost btn-sm" onclick="copyLog()" style="padding:2px 8px;font-size:11px;">📋 复制日志</button>
+  </div>
   <div class="terminal-empty" id="terminalEmpty">Gateway 未启动，暂无日志</div>
   <div class="terminal-log" id="terminalLog" style="display:none;"></div>
 </div>

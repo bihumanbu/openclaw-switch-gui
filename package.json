@@ -15,14 +15,20 @@
     "directories": {
       "output": "dist"
     },
+    "electronDist": "./node_modules/electron/dist",
     "files": [
-      "src/**/*"
+      "src/**/*",
+      "skills-index-temp/**/*"
     ],
     "win": {
       "target": [
-        "nsis"
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        }
       ],
-      "icon": "src/icon.ico"
+      "icon": "src/icon.ico",
+      "signExecutable": false
     },
     "nsis": {
       "oneClick": false,
@@ -43,7 +49,7 @@
       "language": 2052
     }
   },
-  "author": "Siege lion勇哥",
+  "author": "陈碧勇",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -64,7 +70,7 @@
   ],
   "devDependencies": {
     "electron": "^33.0.0",
-    "electron-builder": "^25.1.8",
+    "electron-builder": "^26.15.3",
     "png-to-ico": "^3.0.1",
     "sharp": "^0.34.5",
     "to-ico": "^1.1.5"
