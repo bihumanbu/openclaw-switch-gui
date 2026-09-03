@@ -317,22 +317,10 @@ function getGatewayPort() {
 
 function getGatewayToken() {
   try {
-    // 优先从 gateway.cmd 读取
-    if (fs.existsSync(GATEWAY_CMD_PATH)) {
-      const content = fs.readFileSync(GATEWAY_CMD_PATH, 'utf8');
-      const match = content.match(/OPENCLAW_GATEWAY_TOKEN=([^"\s]+)/);
-      if (match) return match[1];
-    }
-    // 从 openclaw.json 读取（新版 openclaw 不再把 token 写入 gateway.cmd）
-    const configPath = path.join(getUserHome(), '.openclaw/openclaw.json');
-    if (fs.existsSync(configPath)) {
-      const raw = fs.readFileSync(configPath, 'utf8');
-      // openclaw.json 可能有 // 注释，去掉后再 parse
-      const cleaned = raw.replace(/\/\/.*$/gm, '');
-      const cfg = JSON.parse(cleaned);
-      return cfg?.gateway?.auth?.token || null;
-    }
-    return null;
+    if (!fs.existsSync(GATEWAY_CMD_PATH)) return null;
+    const content = fs.readFileSync(GATEWAY_CMD_PATH, 'utf8');
+    const match = content.match(/OPENCLAW_GATEWAY_TOKEN=([^"\s]+)/);
+    return match ? match[1] : null;
   } catch { return null; }
 }
 
@@ -444,10 +432,27 @@ ipcMain.handle('open-dashboard', async () => {
   if (!(await checkPort(port))) {
     return { success: false, message: 'Gateway 未运行' };
   }
-  const token = getGatewayToken();
-  const url = token ? `http://127.0.0.1:${port}/#token=${token}` : `http://127.0.0.1:${port}/`;
-  shell.openExternal(url);
-  return { success: true, url };
+  return new Promise((resolve) => {
+    let output = '';
+    const proc = spawn('cmd.exe', ['/c', 'openclaw', 'dashboard', '--no-open'], {
+      windowsHide: true,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    proc.stdout.on('data', (d) => { output += d.toString(); });
+    proc.stderr.on('data', (d) => { output += d.toString(); });
+    proc.on('close', () => {
+      const match = output.match(/Dashboard URL:\s*(https?:\/\/\S+)/);
+      if (match) {
+        shell.openExternal(match[1]);
+        resolve({ success: true, url: match[1] });
+      } else {
+        resolve({ success: false, message: '未获取到 Dashboard URL' });
+      }
+    });
+    proc.on('error', (err) => {
+      resolve({ success: false, message: err.message });
+    });
+  });
 });
 
 // ── Install OpenClaw ──────────────────────────────────────────
@@ -468,7 +473,7 @@ ipcMain.handle('check-env', async () => {
     if (match) {
       result.nodeMajor = parseInt(match[1]);
       result.nodeMinor = parseInt(match[2]);
-      result.needNodeUpgrade = result.nodeMajor < 22 || (result.nodeMajor === 22 && result.nodeMinor < 23);
+      result.needNodeUpgrade = result.nodeMajor < 22 || (result.nodeMajor === 22 && result.nodeMinor < 16);
     }
   } catch { result.node = null; }
   try {
@@ -485,7 +490,7 @@ ipcMain.handle('check-env', async () => {
 ipcMain.handle('install-nodejs', async () => {
   return new Promise(async (resolve) => {
     const arch = process.arch === 'x64' ? 'x64' : 'x86';
-    const version = 'v22.23.0'; // Node.js 22 LTS (openclaw requires >=22.22.3)
+    const version = 'v22.16.0'; // Node.js 22 LTS (openclaw requires >=22.16.0)
     const msiUrl = `https://npmmirror.com/mirrors/node/${version}/node-${version}-${arch}.msi`;
     const tempDir = path.join(require('os').tmpdir(), 'openclaw-installer');
     const msiPath = path.join(tempDir, `node-${version}-${arch}.msi`);

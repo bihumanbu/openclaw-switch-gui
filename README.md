@@ -109,11 +109,11 @@ openclaw-switch-gui/
 
 ## 许可证
 
-[MIT License](LICENSE) - Copyright (c) 2026 陈碧勇
+[MIT License](LICENSE) - Copyright (c) 2026 Siege lion勇哥
 
 ## 作者
 
-**陈碧勇**
+**Siege lion勇哥**
 
 ## 关注公众号
 
